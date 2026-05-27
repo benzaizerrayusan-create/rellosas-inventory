@@ -1,0 +1,16 @@
+{% extends "customer_base.html" %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+{% block page_title %}Order #{{ order.id }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('customer_login', next=url_for('customer_order')) }}" class="btn btn-ghost btn-sm">← Back to Shop</a>
+{% endblock %}
+{% block content %}
+
+{# Render the order details but ensure the cancel form posts include the token as hidden input #}
+{% set __portal_token = request.args.get('token','') %}
+<form id="portalWrapper" method="post" style="display:none">
+	<input type="hidden" name="token" value="{{ __portal_token }}">
+</form>
+{% include 'view_order.html' %}
+
+{% endblock %}

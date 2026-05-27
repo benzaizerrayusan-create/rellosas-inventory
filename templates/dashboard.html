@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+
+<div class="quick-guide">
+  <div class="quick-guide-title">💡 Quick Guide — Dashboard</div>
+  <ul>
+    <li>Track orders, pickups, deliveries, and product availability in one place.</li>
+    <li>Use the Orders page to schedule pickups or deliveries and assign riders.</li>
+    <li>Use the Riders page to manage your delivery team and assign tasks.</li>
+  </ul>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <div class="stat-top">
+      <div class="stat-icon blue">🛒</div>
+    </div>
+    <div class="stat-value">{{ total_items }}</div>
+    <div class="stat-label">Product SKUs</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-top">
+      <div class="stat-icon green">💰</div>
+    </div>
+    <div class="stat-value" style="font-size:1.35rem">₱{{ "%.2f"|format(total_value) }}</div>
+    <div class="stat-label">Stock Value</div>
+  </div>
+  <div class="stat-card orange">
+    <div class="stat-top">
+      <div class="stat-icon orange">🧾</div>
+    </div>
+    <div class="stat-value">{{ total_orders }}</div>
+    <div class="stat-label">Orders</div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-top">
+      <div class="stat-icon purple">👥</div>
+    </div>
+    <div class="stat-value">{{ total_customers }}</div>
+    <div class="stat-label">Customers</div>
+  </div>
+  <div class="stat-card yellow">
+    <div class="stat-top">
+      <div class="stat-icon yellow">🏷️</div>
+    </div>
+    <div class="stat-value">{{ categories|length }}</div>
+    <div class="stat-label">Categories</div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-top">
+      <div class="stat-icon red">⚠️</div>
+    </div>
+    <div class="stat-value">{{ low_stock|length }}</div>
+    <div class="stat-label">Stock Alerts</div>
+  </div>
+</div>
+
+<!-- Sales summary chart -->
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title">📈 Sales Summary</div>
+    <div class="card-actions">
+      <span class="badge badge-green">Last 7 days: ₱{{ "%.2f"|format(weekly_sales_total) }}</span>
+      <span class="badge badge-blue">{{ weekly_order_count }} orders</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <p class="text-faint">Daily order revenue for the last 7 days.</p>
+    <div style="position:relative; width:100%; max-width:100%;">
+      <canvas id="salesChart" height="160"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Product sales chart -->
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title">🏷️ Top Product Sales</div>
+    <div class="card-actions">
+      <span class="badge badge-green">Revenue: ₱{{ "%.2f"|format(top_product_revenue_total) }}</span>
+      <span class="badge badge-blue">Qty: {{ top_product_quantity_total }}</span>
+    </div>
+  </div>
+  <div class="card-body">
+    <p class="text-faint">Top products by revenue from customer orders.</p>
+    <div style="position:relative; width:100%; max-width:100%;">
+      <canvas id="productSalesChart" height="160"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- Grid -->
+<div class="dashboard-grid">
+  <!-- Categories -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📂 Product Categories</div>
+    </div>
+    <div class="card-body">
+      <div class="cat-grid">
+        {% for cat in categories %}
+        <div class="cat-box" style="position:relative">
+          <a href="{{ url_for('inventory', category=cat.id) }}" class="cat-box-link">
+            <div class="cat-box-icon">
+              {% if cat.icon and is_image_filename(cat.icon) %}
+                <img src="{{ url_for('static', filename='images/categories/' ~ cat.icon) }}" alt="{{ cat.name }}" style="width:40px;height:40px;object-fit:cover;border-radius:6px">
+              {% else %}
+                {{ cat.icon }}
+              {% endif %}
+            </div>
+            <div class="cat-box-name">{{ cat.name }}</div>
+            <div class="cat-box-count">{{ cat.item_count }} products</div>
+          </a>
+          {% if session.get('user_id') %}
+            <a href="{{ url_for('edit_category', cat_id=cat.id) }}" class="btn btn-outline btn-xs cat-box-edit" title="Edit category">Edit</a>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Low Stock -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">⚠️ Product Alerts</div>
+      {% if low_stock %}<span class="badge badge-red">{{ low_stock|length }} items</span>{% endif %}
+    </div>
+    <div class="card-body">
+      {% if low_stock %}
+      <ul class="low-stock-list">
+        {% for item in low_stock %}
+        <li class="low-stock-item">
+          <div class="ls-icon">⚠️</div>
+          <div style="flex:1;min-width:0">
+            <div class="ls-name truncate">{{ item.name }}</div>
+            <div class="ls-cat">{{ item.cat_name }}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <span class="badge badge-red">{{ item.quantity }} {{ item.unit }}</span>
+            <div class="mt-2">
+              <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn btn-outline btn-xs">Edit</a>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="empty-state" style="padding:30px 20px">
+        <div class="empty-icon">✅</div>
+        <h3>All Good!</h3>
+        <p>All products are well-stocked.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Upcoming Pickups -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📅 Upcoming Pickups</div>
+      {% if upcoming_pickups %}<span class="badge badge-blue">{{ upcoming_pickups|length }} next</span>{% endif %}
+    </div>
+    <div class="card-body">
+      {% if upcoming_pickups %}
+      <ul class="low-stock-list">
+        {% for order in upcoming_pickups %}
+        <li class="low-stock-item">
+          <div class="ls-icon">🛍️</div>
+          <div style="flex:1;min-width:0">
+            <div class="ls-name truncate">{{ order.customer_name }}</div>
+            <div class="ls-cat">{{ order.pickup_date }} {{ order.pickup_time }} • {{ order.payment_method }}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <span class="badge badge-green">₱{{ "%.2f"|format(order.total_amount) }}</span>
+            <div class="mt-2">
+              <a href="{{ url_for('view_order', order_id=order.id) }}" class="btn btn-outline btn-xs">View</a>
+            </div>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <div class="empty-state" style="padding:30px 20px">
+        <div class="empty-icon">✅</div>
+        <h3>No pickups scheduled</h3>
+        <p>Use Orders to schedule customer pickup dates.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Recent -->
+<div class="card mt-4">
+  <div class="card-header">
+    <div class="card-title">🕒 Recently Updated</div>
+    <a href="{{ url_for('inventory') }}" class="btn btn-ghost btn-sm">View all products →</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th><th>Category</th><th>Stock</th><th>Unit Price</th><th>Updated</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in recent %}
+        <tr {% if item.quantity <= item.low_stock_threshold %}class="row-low"{% endif %}>
+          <td>
+            <div class="item-cell">
+              <div class="item-emoji">
+                {% if item.image %}
+                  <img src="{{ url_for('static', filename='images/items/' ~ item.image) }}" alt="{{ item.name }}" style="width:34px;height:34px;object-fit:cover;border-radius:6px">
+                {% elif item.icon and is_image_filename(item.icon) %}
+                  <img src="{{ url_for('static', filename='images/categories/' ~ item.icon) }}" alt="{{ item.cat_name }}" style="width:34px;height:34px;object-fit:cover;border-radius:6px">
+                {% else %}
+                  {{ item.icon }}
+                {% endif %}
+              </div>
+              <div>
+                <div class="item-title">{{ item.name }}</div>
+                {% if item.subtype %}<div class="item-sub">{{ item.subtype }}</div>{% endif %}
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge-blue">{{ item.cat_name }}</span></td>
+          <td>
+            {% if item.quantity <= item.low_stock_threshold %}
+              <span class="badge badge-yellow">⚠️ {{ item.quantity }} {{ item.unit }}</span>
+            {% else %}
+              <span class="badge badge-green">{{ item.quantity }} {{ item.unit }}</span>
+            {% endif %}
+          </td>
+          <td class="price-cell">₱{{ "%.2f"|format(item.price) }}</td>
+          <td class="text-faint text-xs">{{ item.updated_at[:10] }}</td>
+          <td><a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn btn-outline btn-xs">Edit</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const salesLabels = {{ sales_chart_labels|tojson }};
+  const salesValues = {{ sales_chart_values|tojson }};
+  const productLabels = {{ product_sales_labels|tojson }};
+  const productValues = {{ product_sales_values|tojson }};
+  const salesCtx = document.getElementById('salesChart');
+  if (salesCtx) {
+    new Chart(salesCtx, {
+      type: 'line',
+      data: {
+        labels: salesLabels,
+        datasets: [{
+          label: 'Sales (₱)',
+          data: salesValues,
+          borderColor: 'rgba(59,130,246,0.85)',
+          backgroundColor: 'rgba(59,130,246,0.18)',
+          pointBackgroundColor: 'rgba(37,99,235,1)',
+          borderWidth: 2,
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) { return '₱' + value; }
+            }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return '₱' + context.parsed.y.toFixed(2);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  const productCtx = document.getElementById('productSalesChart');
+  if (productCtx) {
+    new Chart(productCtx, {
+      type: 'bar',
+      data: {
+        labels: productLabels,
+        datasets: [{
+          label: 'Revenue (₱)',
+          data: productValues,
+          backgroundColor: 'rgba(16,185,129,0.85)',
+          borderColor: 'rgba(16,185,129,1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) { return '₱' + value; }
+            }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return '₱' + context.parsed.y.toFixed(2);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+</script>
+{% endblock %}

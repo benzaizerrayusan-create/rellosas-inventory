@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Add Product{% endblock %}
+{% block page_title %}Add New Product{% endblock %}
+{% block content %}
+
+<div class="quick-guide">
+  <div class="quick-guide-title">💡 Quick Guide — Add Product</div>
+  <ul>
+    <li>Select <strong>Rice</strong> or <strong>Flour</strong> as category to unlock the <em>Subtype</em> field (e.g., Sinandomeng, Bread Flour).</li>
+    <li>Set a <strong>Low Stock Threshold</strong> — you'll get an alert when stock hits that number.</li>
+    <li>All prices are in Philippine Pesos (₱).</li>
+  </ul>
+</div>
+
+<div class="page-header">
+  <div>
+    <h2>➕ Add New Product</h2>
+    <p>Fill in the details to add a new product to your catalog</p>
+  </div>
+  <a href="{{ url_for('inventory') }}" class="btn btn-ghost">← Back</a>
+</div>
+
+{% if error %}<div class="alert alert-error">⚠️ {{ error }}</div>{% endif %}
+
+<div class="card" style="max-width:680px">
+  <div class="card-header">
+    <div class="card-title">📋 Product Details</div>
+  </div>
+  <div class="card-body">
+    <form method="POST" enctype="multipart/form-data">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Product Name <span style="color:var(--danger)">*</span></label>
+          <input type="text" name="name" class="form-control" placeholder="e.g., White Sugar 1kg" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category <span style="color:var(--danger)">*</span></label>
+          <select name="category_id" id="categorySelect" class="form-control" required>
+            <option value="">— Select a category —</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}">{% if cat.icon and is_image_filename(cat.icon) %}[img] {% endif %}{{ cat.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" id="subtypeGroup" style="display:none">
+        <label class="form-label" id="subtypeLabel">Subtype</label>
+        <input type="text" name="subtype" class="form-control" placeholder="e.g., Sinandomeng, Jasmine, All-Purpose...">
+        <div class="form-hint">Specify the variety or type.</div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Initial Quantity <span style="color:var(--danger)">*</span></label>
+          <input type="number" name="quantity" class="form-control" value="0" min="0" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit</label>
+          <select name="unit" class="form-control">
+            <option value="pcs">Pieces (pcs)</option>
+            <option value="kg">Kilogram (kg)</option>
+            <option value="g">Gram (g)</option>
+            <option value="bottle">Bottle</option>
+            <option value="pack">Pack</option>
+            <option value="box">Box</option>
+            <option value="sack">Sack</option>
+            <option value="liter">Liter (L)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Price per Unit (₱) <span style="color:var(--danger)">*</span></label>
+          <input type="number" name="price" class="form-control" value="0" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Low Stock Threshold</label>
+          <input type="number" name="low_stock_threshold" class="form-control" value="10" min="0">
+          <div class="form-hint">Alert when stock reaches this number.</div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Product Image</label>
+          <input type="file" name="image" accept="image/*" class="form-control">
+          <div class="form-hint">Optional. PNG/SVG/JPG. Saved to server.</div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">✅ Save Product</button>
+        <a href="{{ url_for('inventory') }}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

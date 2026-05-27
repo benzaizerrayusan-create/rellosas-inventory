@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Rider Portal{% endblock %} — Rellosas OrderHub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="rider-layout">
+  <header class="rider-header">
+    <div>
+      <div class="brand-name">Rellosas Delivery Portal</div>
+      <div class="brand-sub">Assigned delivery orders only</div>
+    </div>
+    <div class="rider-header-actions">
+      <div class="rider-welcome">Hi, {{ session.get('rider_name') or 'Rider' }}</div>
+      <a href="{{ url_for('rider_change_password') }}" class="btn btn-outline btn-sm">Change Password</a>
+      <a href="{{ url_for('rider_logout') }}" class="btn btn-ghost">Sign Out</a>
+    </div>
+  </header>
+  <main class="page-content">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

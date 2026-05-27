@@ -1,0 +1,30 @@
+{% extends "auth_base.html" %}
+{% block title %}Sign Up{% endblock %}
+{% block content %}
+<div class="auth-title">Create Account</div>
+<div class="auth-sub">Register a new admin account</div>
+
+{% if error %}<div class="alert alert-error">⚠️ {{ error }}</div>{% endif %}
+
+<form method="POST" class="auth-form">
+  <div class="form-group">
+    <label class="form-label">Username</label>
+    <input type="text" name="username" class="form-control" placeholder="Choose a username" required minlength="3">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Email</label>
+    <input type="email" name="email" class="form-control" placeholder="Your email address" required>
+  </div>
+  <div class="form-group">
+    <label class="form-label">Password</label>
+    <input type="password" name="password" class="form-control" placeholder="At least 6 characters" required minlength="6">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Confirm Password</label>
+    <input type="password" name="confirm_password" class="form-control" placeholder="Repeat your password" required>
+  </div>
+  <button type="submit" class="btn btn-primary auth-submit">Create Account →</button>
+</form>
+
+<div class="auth-footer">Already have an account? <a href="{{ url_for('login') }}">Sign in</a></div>
+{% endblock %}

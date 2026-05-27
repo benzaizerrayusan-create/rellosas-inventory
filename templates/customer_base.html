@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Rellosas OrderHub{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script>
+    (function(){
+      const t = localStorage.getItem('rellosas_theme');
+      if(t==='dark') document.documentElement.setAttribute('data-theme','dark');
+    })();
+  </script>
+</head>
+<body>
+<div class="app-layout">
+  <div class="main-content" style="max-width:1140px;margin:auto;">
+    <header class="topbar" style="position:sticky;top:0;z-index:50;">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger" style="visibility:hidden;">☰</button>
+        <div class="breadcrumb">
+          <span>Rellosas</span>
+          <span class="sep">/</span>
+          <span class="current">{% block page_title %}Page{% endblock %}</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="theme-wrap">
+          <span>☀️</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="themeToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span>🌙</span>
+        </div>
+        <div class="topbar-meta">
+          <div class="topbar-clock" id="topbarClock">Loading...</div>
+        </div>
+        <div class="topbar-actions">
+          {% if session.customer_id %}
+            <a href="{{ url_for('customer_change_password') }}" class="btn btn-outline btn-sm">Change Password</a>
+            <a href="{{ url_for('customer_logout') }}" class="btn btn-primary btn-sm">Logout</a>
+          {% endif %}
+          {% block topbar_actions %}{% endblock %}
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content" style="padding:24px 16px 40px;">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ 'success' if cat=='success' else 'info' }}">
+            {{ '✅' if cat=='success' else 'ℹ️' }} {{ msg }}
+          </div>
+        {% endfor %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+
+<script>
+  const themeToggle = document.getElementById('themeToggle');
+  if(themeToggle){
+    themeToggle.addEventListener('change', () => {
+      if(themeToggle.checked) document.documentElement.setAttribute('data-theme','dark');
+      else document.documentElement.removeAttribute('data-theme');
+      localStorage.setItem('rellosas_theme', themeToggle.checked ? 'dark' : 'light');
+    });
+  }
+  function updateClock(){
+    const el = document.getElementById('topbarClock');
+    if(!el) return;
+    const now = new Date();
+    el.textContent = now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+  }
+  updateClock();
+  setInterval(updateClock, 60000);
+</script>
+</body>
+</html>

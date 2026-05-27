@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Auth{% endblock %} — Rellosas Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script>
+    (function(){
+      const t = localStorage.getItem('rellosas_theme');
+      if(t==='dark') document.documentElement.setAttribute('data-theme','dark');
+    })();
+  </script>
+</head>
+<body>
+<div class="auth-theme">
+  <div class="theme-wrap">
+    <span>☀️</span>
+    <label class="toggle-switch">
+      <input type="checkbox" id="themeToggle">
+      <span class="toggle-slider"></span>
+    </label>
+    <span>🌙</span>
+  </div>
+</div>
+
+<div class="auth-page">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🛒</div>
+      <h1>Rellosas OrderHub</h1>
+      <p>Order, Pickup & Delivery Hub</p>
+    </div>
+    {% block content %}{% endblock %}
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

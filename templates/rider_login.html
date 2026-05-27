@@ -1,0 +1,26 @@
+{% extends "auth_base.html" %}
+{% block title %}Rider Sign In{% endblock %}
+{% block content %}
+<div class="auth-title">Rider Sign In</div>
+<div class="auth-sub">Log in to view your assigned delivery orders.</div>
+
+{% if error %}<div class="alert alert-error">⚠️ {{ error }}</div>{% endif %}
+
+<form method="POST" class="auth-form">
+  <div class="form-group">
+    <label class="form-label">Username</label>
+    <input type="text" name="username" class="form-control" placeholder="Rider username" required autocomplete="username">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Password</label>
+    <input type="password" name="password" class="form-control" placeholder="Enter your password" required autocomplete="current-password">
+  </div>
+  <button type="submit" class="btn btn-primary auth-submit">Sign In →</button>
+</form>
+
+<div class="auth-footer">
+  <a href="{{ url_for('login') }}">Admin login</a>
+  &nbsp;·&nbsp;
+  <span>Need account? Ask your admin.</span>
+</div>
+{% endblock %}

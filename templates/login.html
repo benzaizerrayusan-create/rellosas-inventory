@@ -1,0 +1,47 @@
+{% extends "auth_base.html" %}
+{% block title %}Sign In{% endblock %}
+{% block content %}
+<div class="auth-title">Welcome back! 👋</div>
+<div class="auth-sub">Sign in to manage orders, pickups, and deliveries</div>
+
+{% if error %}<div class="alert alert-error">⚠️ {{ error }}</div>{% endif %}
+
+<form method="POST" class="auth-form">
+  <div class="form-group">
+    <label class="form-label">Username or Email</label>
+    <input type="text" name="username" class="form-control" placeholder="Enter username or email" required autocomplete="username">
+  </div>
+  <div class="form-group">
+    <label class="form-label">Password</label>
+    <input type="password" name="password" class="form-control" placeholder="Enter your password" required autocomplete="current-password">
+  </div>
+  <button type="submit" class="btn btn-primary auth-submit">Sign In →</button>
+</form>
+
+<div class="auth-footer">
+  <a href="{{ url_for('forgot_password') }}">Forgot password?</a>
+  &nbsp;·&nbsp;
+  <a href="{{ url_for('signup') }}">Create account</a>
+  &nbsp;·&nbsp;
+  <a href="{{ url_for('rider_login') }}">Rider login</a>
+</div>
+
+<div class="auth-guide">
+  <div class="auth-guide-title">💡 Default Admin Credentials</div>
+  <ul>
+    <li>Username: <strong style="color:#93c5fd">admin</strong> &nbsp; Password: <strong style="color:#93c5fd">admin123</strong></li>
+    <li>Change your password after first login.</li>
+  </ul>
+</div>
+<div class="auth-guide">
+  <div class="auth-guide-title">💡 Customer Order Link</div>
+  <p>Share this link with customers so they can order online: <strong>{{ request.url_root.rstrip('/') }}/customer-order</strong></p>
+  {% if public_tunnel_url %}
+  <p>Remote access URL: <strong>{{ public_tunnel_url.rstrip('/') }}/customer-order</strong></p>
+  {% endif %}
+</div>
+<div class="auth-guide">
+  <div class="auth-guide-title">💡 Rider Login Link</div>
+  <p>Rider access for delivery staff: <strong>{{ request.url_root.rstrip('/') }}/rider-login</strong></p>
+</div>
+{% endblock %}

@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}Products{% endblock %}
+{% block page_title %}Products{% endblock %}
+{% block content %}
+
+<div class="quick-guide">
+  <div class="quick-guide-title">💡 Quick Guide — Products</div>
+  <ul>
+    <li>Filter by category using the chips below, or search by item name.</li>
+    <li>Use <strong>−</strong> / <strong>+</strong> buttons to instantly adjust stock without reloading.</li>
+    <li>Rows highlighted in yellow have hit their low stock threshold.</li>
+    <li>Click <strong>Edit</strong> to update details, or 🗑️ to delete permanently.</li>
+  </ul>
+</div>
+
+<div class="page-header">
+  <div>
+    <h2>All Products &nbsp;<span class="badge badge-blue">{{ items|length }}</span></h2>
+    <p>Manage and monitor your full product catalog</p>
+  </div>
+  <a href="{{ url_for('add_item') }}" class="btn btn-primary">＋ Add New Product</a>
+</div>
+
+<!-- Category chips -->
+<div class="cat-chips">
+  <span class="cat-chip {% if not selected_cat %}active{% endif %}" data-cat="">🔍 All Products</span>
+  {% for cat in categories %}
+  <span class="cat-chip {% if selected_cat|string == cat.id|string %}active{% endif %}" data-cat="{{ cat.id }}">
+    {% if cat.icon and is_image_filename(cat.icon) %}
+      <img src="{{ url_for('static', filename='images/categories/' ~ cat.icon) }}" alt="{{ cat.name }}" style="width:18px;height:18px;vertical-align:middle;margin-right:6px"> {{ cat.name }}
+    {% else %}
+      {{ cat.icon }} {{ cat.name }}
+    {% endif %}
+  </span>
+  {% endfor %}
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" class="form-control" placeholder="Search products..." value="{{ search }}">
+  </div>
+  <select id="sortSelect" class="form-control" style="width:auto">
+    <option value="name"       {% if sort=='name'       %}selected{% endif %}>Sort: Name A–Z</option>
+    <option value="price"      {% if sort=='price'      %}selected{% endif %}>Sort: Price</option>
+    <option value="quantity"   {% if sort=='quantity'   %}selected{% endif %}>Sort: Quantity</option>
+    <option value="updated_at" {% if sort=='updated_at' %}selected{% endif %}>Sort: Last Updated</option>
+  </select>
+  <span class="text-sm text-muted" style="margin-left:auto">{{ items|length }} product(s) found</span>
+</div>
+
+<!-- Table -->
+<div class="card">
+  <div class="table-wrap">
+    {% if items %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Item Name</th>
+          <th>Category</th>
+          <th>Subtype</th>
+          <th>Stock</th>
+          <th>Unit Price</th>
+          <th>Total Value</th>
+          <th>Adjust Stock</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr {% if item.quantity <= item.low_stock_threshold %}class="row-low"{% endif %} data-threshold="{{ item.low_stock_threshold }}">
+          <td class="text-faint text-xs font-mono">{{ "%03d"|format(loop.index) }}</td>
+          <td>
+            <div class="item-cell">
+              <div class="item-emoji">
+                {% if item.image %}
+                  <img src="{{ url_for('static', filename='images/items/' ~ item.image) }}" alt="{{ item.name }}" style="width:34px;height:34px;object-fit:cover;border-radius:6px">
+                {% elif item.icon and is_image_filename(item.icon) %}
+                  <img src="{{ url_for('static', filename='images/categories/' ~ item.icon) }}" alt="{{ item.cat_name }}" style="width:34px;height:34px;object-fit:cover;border-radius:6px">
+                {% else %}
+                  {{ item.icon }}
+                {% endif %}
+              </div>
+              <div>
+                <div class="item-title">{{ item.name }}</div>
+                {% if item.quantity <= item.low_stock_threshold %}
+                <div class="item-sub" style="color:var(--warning)">⚠️ Low stock</div>
+                {% endif %}
+              </div>
+            </div>
+          </td>
+          <td><span class="badge badge-blue">{{ item.cat_name }}</span></td>
+          <td>
+            {% if item.subtype %}
+              <span class="badge badge-cyan">{{ item.subtype }}</span>
+            {% else %}
+              <span class="text-faint text-xs">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if item.quantity <= item.low_stock_threshold %}
+              <span class="badge badge-yellow">{{ item.quantity }} {{ item.unit }}</span>
+            {% elif item.quantity == 0 %}
+              <span class="badge badge-red">Out of stock</span>
+            {% else %}
+              <span class="badge badge-green">{{ item.quantity }} {{ item.unit }}</span>
+            {% endif %}
+          </td>
+          <td class="price-cell">₱{{ "%.2f"|format(item.price) }}</td>
+          <td class="price-cell">₱{{ "%.2f"|format(item.quantity * item.price) }}</td>
+          <td>
+            <div class="stock-adjuster">
+              <button class="adj-btn minus" data-adjust="-1" data-item-id="{{ item.id }}" title="−1">−</button>
+              <span class="adj-qty" id="qty-{{ item.id }}">{{ item.quantity }}</span>
+              <div class="adj-sep"></div>
+              <button class="adj-btn" data-adjust="1" data-item-id="{{ item.id }}" title="+1">＋</button>
+            </div>
+          </td>
+          <td>
+            <div class="flex gap-2">
+              <a href="{{ url_for('edit_item', item_id=item.id) }}" class="btn btn-outline btn-xs">✏️ Edit</a>
+              <form method="POST" action="{{ url_for('delete_item', item_id=item.id) }}" class="delete-form" style="margin:0">
+                <button type="submit" class="btn btn-danger btn-xs">🗑️</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <h3>No products found</h3>
+      <p>Try a different filter, or <a href="{{ url_for('add_item') }}">add your first product →</a></p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

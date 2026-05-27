@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Orders{% endblock %}
+{% block page_title %}Orders{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('add_order') }}" class="btn btn-primary btn-sm">＋ New Order</a>
+{% endblock %}
+{% block content %}
+
+<div class="quick-guide">
+  <div class="quick-guide-title">💡 Quick Guide — Orders</div>
+  <ul>
+    <li>Search by customer, payment method, or order status.</li>
+    <li>Use the pickup date filter to find scheduled pick-ups on a specific day.</li>
+    <li>Click View to open the order summary, Edit to update schedule or items, and Delete to remove the order.</li>
+  </ul>
+</div>
+
+<div class="page-header">
+  <div>
+    <h2>All Orders &nbsp;<span class="badge badge-blue">{{ orders|length }}</span></h2>
+    <p>Manage customer orders, pickup schedule, and payment details.</p>
+  </div>
+  <a href="{{ url_for('add_order') }}" class="btn btn-primary">＋ New Order</a>
+</div>
+
+{% set counts = namespace(pending=0, transit=0, delivery=0, ready=0, picked=0, delivered=0, cancelled=0) %}
+{% for order in orders %}
+  {% if order.status == 'Pending' %}
+    {% set counts.pending = counts.pending + 1 %}
+  {% elif order.status == 'In Transit' %}
+    {% set counts.transit = counts.transit + 1 %}
+  {% elif order.status == 'Out for Delivery' %}
+    {% set counts.delivery = counts.delivery + 1 %}
+  {% elif order.status == 'Ready for Pickup' %}
+    {% set counts.ready = counts.ready + 1 %}
+  {% elif order.status == 'Picked Up' %}
+    {% set counts.picked = counts.picked + 1 %}
+  {% elif order.status == 'Delivered' %}
+    {% set counts.delivered = counts.delivered + 1 %}
+  {% elif order.status == 'Cancelled' %}
+    {% set counts.cancelled = counts.cancelled + 1 %}
+  {% endif %}
+{% endfor %}
+<div class="stats-grid orders-summary">
+  <div class="stat-card blue">
+    <div class="stat-top"><div class="stat-icon blue">⏳</div></div>
+    <div class="stat-value">{{ counts.pending }}</div>
+    <div class="stat-label">Pending</div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-top"><div class="stat-icon purple">🚚</div></div>
+    <div class="stat-value">{{ counts.transit }}</div>
+    <div class="stat-label">In Transit</div>
+  </div>
+  <div class="stat-card yellow">
+    <div class="stat-top"><div class="stat-icon yellow">📦</div></div>
+    <div class="stat-value">{{ counts.delivery }}</div>
+    <div class="stat-label">Out for Delivery</div>
+  </div>
+  <div class="stat-card teal">
+    <div class="stat-top"><div class="stat-icon teal">🛍️</div></div>
+    <div class="stat-value">{{ counts.ready }}</div>
+    <div class="stat-label">Ready for Pickup</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-top"><div class="stat-icon green">✅</div></div>
+    <div class="stat-value">{{ counts.picked }}</div>
+    <div class="stat-label">Picked Up</div>
+  </div>
+  <div class="stat-card teal">
+    <div class="stat-top"><div class="stat-icon teal">📬</div></div>
+    <div class="stat-value">{{ counts.delivered }}</div>
+    <div class="stat-label">Delivered</div>
+  </div>
+  <div class="stat-card red">
+    <div class="stat-top"><div class="stat-icon red">✖️</div></div>
+    <div class="stat-value">{{ counts.cancelled }}</div>
+    <div class="stat-label">Cancelled</div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input id="searchInput" type="text" class="form-control" placeholder="Search orders..." value="{{ search }}">
+  </div>
+  <div class="form-group" style="margin-left:12px">
+    <label class="form-label">Pickup Date</label>
+    <input id="pickupDate" type="date" class="form-control" value="{{ pickup_date }}">
+  </div>
+  <span class="text-sm text-muted" style="margin-left:auto">{{ orders|length }} order(s)</span>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    {% if orders %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Customer</th>
+          <th>Status</th>
+          <th>Type</th>
+          <th>Pickup</th>
+          <th>Payment</th>
+          <th>Total</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr class="order-row status-{{ order.status|lower|replace(' ','-') }}">
+          <td class="text-faint text-xs font-mono">{{ "%03d"|format(loop.index) }}</td>
+          <td>{{ order.customer_name }}</td>
+          <td><span class="badge badge-cyan">{{ order.status }}</span></td>
+          <td>{{ order.delivery_method|capitalize }}</td>
+          <td>{{ order.pickup_date }} {{ order.pickup_time }}</td>
+          <td>{{ order.payment_method }}</td>
+          <td class="price-cell">₱{{ "%.2f"|format(order.total_amount) }}</td>
+          <td>
+            <div class="flex gap-2">
+              <a href="{{ url_for('view_order', order_id=order.id) }}" class="btn btn-outline btn-xs">View</a>
+              <a href="{{ url_for('edit_order', order_id=order.id) }}" class="btn btn-outline btn-xs">Edit</a>
+              <form method="POST" action="{{ url_for('delete_order', order_id=order.id) }}" class="delete-form" style="margin:0">
+                <button type="submit" class="btn btn-danger btn-xs">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🧾</div>
+      <h3>No orders yet</h3>
+      <p>Create your first order and schedule pickup details.</p>
+      <a href="{{ url_for('add_order') }}" class="btn btn-primary">Add Order</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const search = document.getElementById('searchInput');
+    const pickupDate = document.getElementById('pickupDate');
+    function updateUrl() {
+      const url = new URL(window.location);
+      if (search.value) url.searchParams.set('search', search.value);
+      else url.searchParams.delete('search');
+      if (pickupDate.value) url.searchParams.set('pickup_date', pickupDate.value);
+      else url.searchParams.delete('pickup_date');
+      window.location = url.toString();
+    }
+    if (search) search.addEventListener('keypress', e => { if (e.key === 'Enter') updateUrl(); });
+    if (pickupDate) pickupDate.addEventListener('change', updateUrl);
+  });
+</script>
+
+{% endblock %}

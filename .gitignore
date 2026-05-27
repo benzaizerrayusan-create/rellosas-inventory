@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+
+# SQLite and database files
+*.db
+*.sqlite3
+inventory.db
+
+# IDE/editor
+.vscode/
+*.swp
+*.swo
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ngrok
+ngrok.yml

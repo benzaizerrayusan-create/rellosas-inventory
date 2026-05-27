@@ -1,0 +1,55 @@
+# RELLOSAS INVENTORY - QUICK START GUIDE
+
+## For Local Network (Same Wi-Fi)
+1. Run: START_APP_SQLITE.bat (or START_APP_MYSQL.bat)
+2. Open browser: http://localhost:5000
+3. From phone on same Wi-Fi: http://<YOUR_PC_IP>:5000
+   - Find your PC IP by opening Command Prompt and typing: ipconfig
+   - Look for "IPv4 Address" (usually 192.168.x.x)
+
+## For Remote Access (Different Network, Mobile, Customers)
+
+### Easiest Way: Use ngrok
+
+STEP 1: Install ngrok
+- Go to: https://ngrok.com/download
+- Download ngrok for Windows
+- Extract the ngrok.exe file
+- Place it in this folder (maag g proj) OR add it to PATH
+
+STEP 2: Run the app with public access
+- Double-click: START_APP_SETUP.bat
+- It will automatically check for ngrok and start everything
+- Wait for ngrok to start and show a public URL
+
+STEP 3: Share the link
+- You'll see a URL like: https://xxxxxx.ngrok.io
+- Send this to customers: https://xxxxxx.ngrok.io/customer-order
+- They can use it from ANY network, ANY device
+
+## Troubleshooting
+
+Q: ngrok says "command not found"
+A: ngrok is not installed. Download it from https://ngrok.com/download and follow STEP 1 above.
+
+Q: I have ngrok installed but START_APP_SETUP.bat doesn't work
+A: Try running START_APP_NGROK.bat directly
+
+Q: The app works on laptop but phone can't connect
+A: Check if you're using the right URL:
+   - Same Wi-Fi: http://<PC_IP>:5000
+   - Different network: https://xxxxxx.ngrok.io (from ngrok)
+
+Q: Can I use this permanently?
+A: ngrok free version restarts links every 6-8 hours. For permanent:
+   - Deploy to cloud (Heroku, Render, AWS, etc.)
+   - Use port forwarding (advanced, not recommended)
+
+## Default Login
+- Username: admin
+- Password: admin123
+
+## Support
+- Check README.md for full documentation
+- Make sure Flask app is running before accessing
+- Restart the app if you get connection errors

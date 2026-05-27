@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Riders{% endblock %}
+{% block page_title %}Riders{% endblock %}
+{% block content %}
+
+{% if error %}<div class="alert alert-error">⚠️ {{ error }}</div>{% endif %}
+
+<div class="card mb-4">
+  <div class="card-header"><div class="card-title">＋ Add Rider</div></div>
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('riders') }}">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Name <span style="color:var(--danger)">*</span></label>
+          <input type="text" name="name" class="form-control" placeholder="Rider name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="text" name="phone" class="form-control" placeholder="0917xxxxxxx">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Username <span style="color:var(--danger)">*</span></label>
+          <input type="text" name="username" class="form-control" placeholder="rider username" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password <span style="color:var(--danger)">*</span></label>
+          <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group" style="flex:1">
+          <label class="form-label">Email</label>
+          <input type="email" name="email" class="form-control" placeholder="rider@example.com">
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Add Rider</button>
+        <button type="reset" class="btn btn-ghost">Clear</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Name</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        {% for r in riders %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ r.name }}</td>
+          <td>{{ r.phone or '—' }}</td>
+          <td>{{ 'Active' if r.active else 'Inactive' }}</td>
+          <td>
+            <div class="flex gap-2" style="flex-wrap:wrap;align-items:center">
+              {% if r.active %}
+              <form method="POST" action="{{ url_for('delete_rider', rider_id=r.id) }}" style="display:inline">
+                <button class="btn btn-danger btn-xs">Deactivate</button>
+              </form>
+              {% else %}
+              <form method="POST" action="{{ url_for('reactivate_rider', rider_id=r.id) }}" style="display:inline">
+                <button class="btn btn-success btn-xs">Reactivate</button>
+              </form>
+              {% endif %}
+              <form method="POST" action="{{ url_for('remove_rider', rider_id=r.id) }}" style="display:inline">
+                <button class="btn btn-outline btn-xs" style="color:var(--danger);border-color:var(--danger)">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

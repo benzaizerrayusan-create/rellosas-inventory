@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Rellosas OrderHub{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <script>
+    (function(){
+      const t = localStorage.getItem('rellosas_theme');
+      if(t==='dark') document.documentElement.setAttribute('data-theme','dark');
+    })();
+  </script>
+</head>
+<body>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+<div class="app-layout">
+
+  <!-- ── Sidebar ── -->
+  {% if session.user_id %}
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon">🛒</div>
+      <div>
+        <div class="brand-name">Rellosas OrderHub</div>
+        <div class="brand-sub">Order, Pickup, Delivery & Products</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="{{ url_for('dashboard') }}" class="nav-item {% if request.endpoint=='dashboard' %}active{% endif %}">
+        <span class="nav-icon">📊</span> Dashboard
+      </a>
+      <a href="{{ url_for('orders') }}" class="nav-item {% if request.endpoint in ['orders','add_order','edit_order','view_order'] %}active{% endif %}">
+        <span class="nav-icon">🧾</span> Orders
+      </a>
+      <a href="{{ url_for('schedule') }}" class="nav-item {% if request.endpoint == 'schedule' %}active{% endif %}">
+        <span class="nav-icon">📅</span> Schedule
+      </a>
+      <a href="{{ url_for('customers') }}" class="nav-item {% if request.endpoint in ['customers','add_customer','edit_customer','view_customer'] %}active{% endif %}">
+        <span class="nav-icon">👥</span> Customers
+      </a>
+      <a href="{{ url_for('riders') }}" class="nav-item {% if request.endpoint in ['riders','add_rider'] %}active{% endif %}">
+        <span class="nav-icon">🏍️</span> Riders
+      </a>
+
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Operations</div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-card">
+        {% if session.get('username') %}
+        <div class="user-avatar">{{ session.get('username')[0]|upper }}</div>
+        <div class="user-info" style="flex:1;min-width:0">
+          <div class="user-name">{{ session.get('username') }}</div>
+          <div class="user-role">Administrator</div>
+        </div>
+        {% else %}
+        <div class="user-avatar">?</div>
+        <div class="user-info" style="flex:1;min-width:0">
+          <div class="user-name">Guest</div>
+          <div class="user-role">Visitor</div>
+        </div>
+        {% endif %}
+        <div class="online-dot"></div>
+      </div>
+      {% if session.user_id %}
+      <div style="display:flex;gap:8px;align-items:center">
+        <a href="{{ url_for('change_password') }}" class="btn btn-ghost btn-sm">Change Password</a>
+        <a href="{{ url_for('logout') }}" class="btn-signout">🚪 Sign Out</a>
+      </div>
+      {% else %}
+      <a href="{{ url_for('login') }}" class="btn-signout">🔐 Admin Login</a>
+      {% endif %}
+    </div>
+  </aside>
+  {% endif %}
+
+  <!-- ── Main ── -->
+  <div class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" id="hamburger">☰</button>
+        <div class="breadcrumb">
+          <span>Rellosas</span>
+          <span class="sep">/</span>
+          <span class="current">{% block page_title %}Dashboard{% endblock %}</span>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="theme-wrap">
+          <span>☀️</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="themeToggle">
+            <span class="toggle-slider"></span>
+          </label>
+          <span>🌙</span>
+        </div>
+        <div class="topbar-meta">
+          <div class="topbar-clock" id="topbarClock">Loading...</div>
+          <a href="{{ url_for('orders') }}" class="reminder-pill" title="Pickup reminders for today, overdue, and the next 3 days">
+            <span>📅 Pickup reminder</span>
+            {% if global_overdue_count > 0 %}
+              <span class="reminder-badge overdue">{{ global_overdue_count }} overdue</span>
+            {% endif %}
+            {% if global_today_count > 0 %}
+              <span class="reminder-badge today">{{ global_today_count }} today</span>
+            {% endif %}
+            {% if global_overdue_count == 0 and global_today_count == 0 %}
+              <span class="reminder-text">No urgent pickups</span>
+            {% endif %}
+          </a>
+        </div>
+        {% block topbar_actions %}
+        <a href="{{ url_for('add_order') }}" class="btn btn-primary btn-sm">＋ New Order</a>
+        {% endblock %}
+      </div>
+    </header>
+
+    <div class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ 'success' if cat=='success' else 'info' }}">
+            {{ '✅' if cat=='success' else 'ℹ️' }} {{ msg }}
+          </div>
+        {% endfor %}
+      {% endwith %}
+      {% if session.user_id %}
+        {% if global_portal_order_count %}
+        <div class="alert alert-info">
+          📢 {{ global_portal_order_count }} new customer order(s) placed in the last 12 hours. <a href="{{ url_for('orders') }}">View orders</a>
+        </div>
+        {% endif %}
+        {% if global_pickup_reminders %}
+        <div class="global-reminder">
+        <div class="reminder-heading">📌 Upcoming pickups this week</div>
+        <div class="reminder-meta">
+          <span class="reminder-meta-pill">Today: {{ global_today_count }} pickup(s)</span>
+          <span class="reminder-meta-pill">Next 3 days: {{ global_pickup_reminders|length }}</span>
+        </div>
+        <div class="reminder-list">
+          {% for pickup in global_pickup_reminders[:3] %}
+          <a href="{{ url_for('view_order', order_id=pickup.id) }}" class="reminder-item {{ 'today' if pickup.due_state == 'today' else 'overdue' if pickup.due_state == 'overdue' else '' }}">
+            <div class="reminder-item-date">{{ pickup.pickup_date }}</div>
+            <div>
+              <strong>{{ pickup.customer_name }}</strong>
+              <div class="reminder-status">{{ pickup.pickup_time }} • {{ pickup.status }}</div>
+            </div>
+          </a>
+          {% endfor %}
+          {% if global_pickup_reminders|length > 3 %}
+          <div class="reminder-item more">+ {{ global_pickup_reminders|length - 3 }} more scheduled pickups</div>
+          {% endif %}
+        </div>
+      </div>
+      {% endif %}
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </div>
+</div>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

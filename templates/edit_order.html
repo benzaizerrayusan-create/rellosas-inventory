@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}Edit Order{% endblock %}
+{% block page_title %}Edit Order{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('orders') }}" class="btn btn-ghost btn-sm">← Back to Orders</a>
+{% endblock %}
+{% block content %}
+
+<div class="quick-guide">
+  <div class="quick-guide-title">💡 Quick Guide — Edit Order</div>
+  <ul>
+    <li>Update customer, pickup schedule, payment method, or ordered items.</li>
+    <li>Removing all items is not allowed; keep at least one item.</li>
+    <li>Use notes for special pickup instructions.</li>
+  </ul>
+</div>
+
+<div class="page-header">
+  <div>
+    <h2>✏️ Edit Order</h2>
+    <p class="text-muted">Order #{{ order.id }}</p>
+  </div>
+  <a href="{{ url_for('orders') }}" class="btn btn-ghost">← Back</a>
+</div>
+
+{% if error %}<div class="alert alert-error">⚠️ {{ error }}</div>{% endif %}
+
+<div class="card" style="max-width:900px">
+  <div class="card-header">
+    <div class="card-title">🛒 Order Details</div>
+  </div>
+  <div class="card-body">
+    <form method="POST" id="orderForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Customer <span style="color:var(--danger)">*</span></label>
+          <select name="customer_id" class="form-control" required>
+            <option value="">— Select a customer —</option>
+            {% for customer in customers %}
+            <option value="{{ customer.id }}" {% if customer.id == order.customer_id %}selected{% endif %}>{{ customer.name }} — {{ customer.email }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select name="status" class="form-control">
+            {% for status in order_statuses %}
+            <option value="{{ status }}" {% if status == order.status %}selected{% endif %}>{{ status }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Pickup Date <span style="color:var(--danger)">*</span></label>
+          <input type="date" name="pickup_date" class="form-control" value="{{ order.pickup_date }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pickup Time <span style="color:var(--danger)">*</span></label>
+          <input type="time" name="pickup_time" class="form-control" value="{{ order.pickup_time }}" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Payment Method <span style="color:var(--danger)">*</span></label>
+          <select name="payment_method" class="form-control" required>
+            <option value="Cash" {% if order.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+            <option value="Online Payment" {% if order.payment_method == 'Online Payment' %}selected{% endif %}>Online Payment</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Delivery Method</label>
+          <select name="delivery_method" class="form-control">
+            <option value="pickup" {% if order.delivery_method == 'pickup' %}selected{% endif %}>Pickup</option>
+            <option value="delivery" {% if order.delivery_method == 'delivery' %}selected{% endif %}>Delivery</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Assign Rider (optional)</label>
+          <select name="rider_id" class="form-control">
+            <option value="">— No rider —</option>
+            {% for r in riders %}
+            <option value="{{ r.id }}" {% if order.rider_id == r.id %}selected{% endif %}>{{ r.name }} {% if r.phone %}— {{ r.phone }}{% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <input type="text" name="notes" class="form-control" value="{{ order.notes or '' }}" placeholder="Order notes, special instructions...">
+        </div>
+      </div>
+
+      <div class="section-title">Order Items</div>
+      <div class="table-wrap">
+        <table id="itemsTable">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in order_items %}
+            <tr class="item-row">
+              <td>
+                <select name="item_id" class="form-control">
+                  <option value="">— Select item —</option>
+                  {% for product in items %}
+                  <option value="{{ product.id }}" {% if product.id == item.item_id %}selected{% endif %}>{{ product.name }} ({{ product.unit }})</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td><input type="number" name="quantity" class="form-control" value="{{ item.quantity }}" min="1"></td>
+              <td><button type="button" class="btn btn-outline btn-xs remove-row">Remove</button></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <button type="button" id="addItemBtn" class="btn btn-ghost btn-sm">＋ Add Another Item</button>
+
+      <div class="flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+        <a href="{{ url_for('orders') }}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const addItemBtn = document.getElementById('addItemBtn');
+    const itemsTable = document.getElementById('itemsTable').querySelector('tbody');
+    addItemBtn.addEventListener('click', () => {
+      const row = document.createElement('tr');
+      row.className = 'item-row';
+      row.innerHTML = `
+        <td>
+          <select name="item_id" class="form-control">
+            <option value="">— Select item —</option>
+            {% for product in items %}
+            <option value="{{ product.id }}">{{ product.name }} ({{ product.unit }})</option>
+            {% endfor %}
+          </select>
+        </td>
+        <td><input type="number" name="quantity" class="form-control" value="1" min="1"></td>
+        <td><button type="button" class="btn btn-outline btn-xs remove-row">Remove</button></td>
+      `;
+      itemsTable.appendChild(row);
+    });
+    itemsTable.addEventListener('click', e => {
+      if (e.target.matches('.remove-row')) {
+        const row = e.target.closest('tr');
+        if (row) row.remove();
+      }
+    });
+  });
+</script>
+
+{% endblock %}

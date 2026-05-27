@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Customers{% endblock %}
+{% block page_title %}Customers{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('add_customer') }}" class="btn btn-primary btn-sm">＋ Add Customer</a>
+{% endblock %}
+{% block content %}
+
+<div class="quick-guide">
+  <div class="quick-guide-title">💡 Quick Guide — Customers</div>
+  <ul>
+    <li>Search customers by name, email, phone, or address.</li>
+    <li>Click <strong>View</strong> to see customer details.</li>
+    <li>Use <strong>Edit</strong> to update customer information.</li>
+    <li>Delete a customer only when you no longer need their record.</li>
+  </ul>
+</div>
+
+<div class="page-header">
+  <div>
+    <h2>All Customers &nbsp;<span class="badge badge-blue">{{ customers|length }}</span></h2>
+    <p>View, add, edit, or delete customer information.</p>
+  </div>
+  <a href="{{ url_for('add_customer') }}" class="btn btn-primary">＋ Add Customer</a>
+</div>
+
+<div class="toolbar">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="searchInput" class="form-control" placeholder="Search customers..." value="{{ search }}">
+  </div>
+  <span class="text-sm text-muted" style="margin-left:auto">{{ customers|length }} customer(s)</span>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    {% if customers %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Address</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for customer in customers %}
+        <tr>
+          <td class="text-faint text-xs font-mono">{{ "%03d"|format(loop.index) }}</td>
+          <td>{{ customer.name }}</td>
+          <td>{{ customer.email }}</td>
+          <td>{{ customer.phone or '—' }}</td>
+          <td>{{ customer.address or '—' }}</td>
+          <td class="text-faint text-xs">{{ customer.created_at[:10] }}</td>
+          <td>
+            <div class="flex gap-2">
+              <a href="{{ url_for('view_customer', customer_id=customer.id) }}" class="btn btn-outline btn-xs">👁️ View</a>
+              <a href="{{ url_for('edit_customer', customer_id=customer.id) }}" class="btn btn-outline btn-xs">✏️ Edit</a>
+              <form method="POST" action="{{ url_for('delete_customer', customer_id=customer.id) }}" class="delete-form" style="margin:0">
+                <button type="submit" class="btn btn-danger btn-xs">🗑️</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">📇</div>
+      <h3>No customers yet</h3>
+      <p>Add your first customer to start managing customer records.</p>
+      <a href="{{ url_for('add_customer') }}" class="btn btn-primary">Add Customer</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}

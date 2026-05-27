@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Edit Product{% endblock %}
+{% block page_title %}Edit Product{% endblock %}
+{% block content %}
+
+<div class="quick-guide">
+  <div class="quick-guide-title">💡 Quick Guide — Edit Product</div>
+  <ul>
+    <li>Update any field and click <strong>Save Changes</strong> to apply.</li>
+    <li>You can set the exact stock quantity here, or use the ＋/− buttons in the products list.</li>
+    <li>Deleting a product is <strong>permanent</strong> — make sure before you click Delete.</li>
+  </ul>
+</div>
+
+<div class="page-header">
+  <div>
+    <h2>✏️ Edit Product</h2>
+    <p class="text-muted">{{ item.name }}</p>
+  </div>
+  <a href="{{ url_for('inventory') }}" class="btn btn-ghost">← Back</a>
+</div>
+
+{% if error %}<div class="alert alert-error">⚠️ {{ error }}</div>{% endif %}
+
+<div class="card" style="max-width:680px">
+  <div class="card-header">
+    <div class="card-title">📋 Product Details</div>
+    <span class="text-xs text-faint font-mono">ID #{{ "%03d"|format(item.id) }}</span>
+  </div>
+  <div class="card-body">
+    <form method="POST" enctype="multipart/form-data">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Product Name <span style="color:var(--danger)">*</span></label>
+          <input type="text" name="name" class="form-control" value="{{ item.name }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Category <span style="color:var(--danger)">*</span></label>
+          <select name="category_id" id="categorySelect" class="form-control" required>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if cat.id == item.category_id %}selected{% endif %}>
+              {% if cat.icon and is_image_filename(cat.icon) %}[img] {% endif %}{{ cat.name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group" id="subtypeGroup">
+        <label class="form-label" id="subtypeLabel">Subtype</label>
+        <input type="text" name="subtype" class="form-control" value="{{ item.subtype or '' }}" placeholder="e.g., Sinandomeng, All-Purpose...">
+        <div class="form-hint">For Rice or Flour — specify the variety.</div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Quantity <span style="color:var(--danger)">*</span></label>
+          <input type="number" name="quantity" class="form-control" value="{{ item.quantity }}" min="0" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit</label>
+          <select name="unit" class="form-control">
+            {% for u in ['pcs','kg','g','bottle','pack','box','sack','liter'] %}
+            <option value="{{ u }}" {% if item.unit == u %}selected{% endif %}>{{ u }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Price per Unit (₱) <span style="color:var(--danger)">*</span></label>
+          <input type="number" name="price" class="form-control" value="{{ item.price }}" min="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Low Stock Threshold</label>
+          <input type="number" name="low_stock_threshold" class="form-control" value="{{ item.low_stock_threshold }}" min="0">
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Product Image</label>
+          {% if item.image %}
+            <div style="margin-bottom:8px"><img src="{{ url_for('static', filename='images/items/' ~ item.image) }}" style="width:96px;height:96px;object-fit:cover;border-radius:6px"></div>
+          {% endif %}
+          <input type="file" name="image" accept="image/*" class="form-control">
+          <div class="form-hint">Upload to replace existing image.</div>
+        </div>
+      </div>
+
+      <div class="flex gap-2 mt-4" style="flex-wrap:wrap">
+        <button type="submit" class="btn btn-primary">💾 Save Product</button>
+        <a href="{{ url_for('inventory') }}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+    <form method="POST" action="{{ url_for('delete_item', item_id=item.id) }}" class="delete-form mt-3">
+      <button type="submit" class="btn btn-danger">🗑️ Delete Product</button>
+    </form>
+  </div>
+</div>
+
+<!-- Meta info -->
+<div class="card mt-4" style="max-width:680px">
+  <div class="card-body">
+    <div class="flex gap-3" style="flex-wrap:wrap;font-size:.76rem;color:var(--text-muted)">
+      <span>📅 Created: <strong>{{ item.created_at[:10] }}</strong></span>
+      <span>🔄 Updated: <strong>{{ item.updated_at[:10] }}</strong></span>
+      <span>💰 Total Value: <strong class="price-cell">₱{{ "%.2f"|format(item.quantity * item.price) }}</strong></span>
+    </div>
+  </div>
+</div>
+{% endblock %}

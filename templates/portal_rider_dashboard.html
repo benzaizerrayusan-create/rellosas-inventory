@@ -1,0 +1,67 @@
+{% extends "customer_base.html" %}
+{% block title %}Rider Portal{% endblock %}
+{% block page_title %}Rider Portal{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2>Assigned Delivery Orders</h2>
+    <p>Orders assigned to you. Use this link on your mobile device.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    {% if orders %}
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Customer</th>
+          <th>Pickup</th>
+          <th>Address</th>
+          <th>Status</th>
+          <th>Total</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        <tr>
+          <td>{{ order.id }}</td>
+          <td>{{ order.customer_name }}</td>
+          <td>{{ order.pickup_date }} {{ order.pickup_time }}</td>
+          <td>{{ order.customer_address or '—' }}</td>
+          <td>{{ order.status }}</td>
+          <td class="price-cell">₱{{ "%.2f"|format(order.total_amount) }}</td>
+          <td>
+            <div class="flex gap-2" style="flex-wrap:wrap;align-items:center">
+              <a href="{{ url_for('portal_rider_view_order', order_id=order.id) }}?token={{ token }}" class="btn btn-outline btn-xs">View</a>
+              {% if order.status == 'Pending' %}
+              <form method="POST" action="{{ url_for('portal_rider_order_action', order_id=order.id) }}" style="display:inline">
+                <input type="hidden" name="token" value="{{ token }}">
+                <input type="hidden" name="action" value="accept">
+                <button type="submit" class="btn btn-primary btn-xs">Accept</button>
+              </form>
+              {% elif order.status == 'Out for Delivery' %}
+              <form method="POST" action="{{ url_for('portal_rider_order_action', order_id=order.id) }}" style="display:inline">
+                <input type="hidden" name="token" value="{{ token }}">
+                <input type="hidden" name="action" value="deliver">
+                <button type="submit" class="btn btn-success btn-xs">Mark Delivered</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🏍️</div>
+      <h3>No assigned delivery orders</h3>
+      <p>Orders assigned to you will appear here once they are scheduled for delivery.</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

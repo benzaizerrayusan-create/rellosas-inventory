@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Schedule{% endblock %}
+{% block page_title %}Pickup Calendar{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('add_order') }}" class="btn btn-primary btn-sm">＋ New Order</a>
+{% endblock %}
+{% block content %}
+
+<div class="quick-guide">
+  <div class="quick-guide-title">💡 Quick Guide — Schedule</div>
+  <ul>
+    <li>See pickups and deliveries on a calendar month view.</li>
+    <li>Today is highlighted so you can quickly spot urgent orders.</li>
+    <li>Click any order to open the full order details page.</li>
+  </ul>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">📆 {{ month_year }}</div>
+    <div class="calendar-controls">
+      <a href="{{ url_for('schedule', year=prev_month.year, month=prev_month.month) }}" class="btn btn-outline btn-xs">← Previous</a>
+      <a href="{{ url_for('schedule', year=next_month.year, month=next_month.month) }}" class="btn btn-outline btn-xs">Next →</a>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="calendar-grid">
+      <div class="calendar-head">Sun</div>
+      <div class="calendar-head">Mon</div>
+      <div class="calendar-head">Tue</div>
+      <div class="calendar-head">Wed</div>
+      <div class="calendar-head">Thu</div>
+      <div class="calendar-head">Fri</div>
+      <div class="calendar-head">Sat</div>
+      {% for week in calendar_weeks %}
+        {% for day in week %}
+          {% set order_day = day.strftime('%Y-%m-%d') %}
+          <div class="calendar-cell {% if day.month != current_month %}calendar-cell-muted{% endif %} {% if order_day == today %}calendar-cell-today{% endif %}">
+            <div class="calendar-day">{{ day.day }}</div>
+            {% if events.get(order_day) %}
+            <div class="calendar-events">
+              {% for order in events[order_day] %}
+              <a href="{{ url_for('view_order', order_id=order.id) }}" class="calendar-event status-{{ order.status|lower|replace(' ','-') }}">
+                <span class="calendar-event-time">{{ order.pickup_time }}</span>
+                <strong>{{ order.customer_name }}</strong>
+                <span>{{ order.status }}</span>
+              </a>
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

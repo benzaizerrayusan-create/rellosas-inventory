@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}New Order{% endblock %}
+{% block page_title %}New Order{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('orders') }}" class="btn btn-ghost btn-sm">← Back to Orders</a>
+{% endblock %}
+{% block content %}
+
+<div class="quick-guide">
+  <div class="quick-guide-title">💡 Quick Guide — New Order</div>
+  <ul>
+    <li>Choose a customer, select items, set pickup date/time, and choose payment method.</li>
+    <li>Payment can be Cash or Online Payment.</li>
+    <li>Use the calendar field to schedule pickup.</li>
+  </ul>
+</div>
+
+<div class="page-header">
+  <div>
+    <h2>➕ Create Order</h2>
+    <p>Schedule pickup and payment for a customer.</p>
+  </div>
+  <a href="{{ url_for('orders') }}" class="btn btn-ghost">← Back</a>
+</div>
+
+{% if error %}<div class="alert alert-error">⚠️ {{ error }}</div>{% endif %}
+
+<div class="card" style="max-width:900px">
+  <div class="card-header">
+    <div class="card-title">🛒 Order Details</div>
+  </div>
+  <div class="card-body">
+    <form method="POST" id="orderForm">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Customer <span style="color:var(--danger)">*</span></label>
+          <select name="customer_id" class="form-control" required>
+            <option value="">— Select a customer —</option>
+            {% for customer in customers %}
+            <option value="{{ customer.id }}">{{ customer.name }} — {{ customer.email }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select name="status" class="form-control">
+            {% for status in order_statuses %}
+            <option value="{{ status }}" {% if status == 'Pending' %}selected{% endif %}>{{ status }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Pickup Date <span style="color:var(--danger)">*</span></label>
+          <input type="date" name="pickup_date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pickup Time <span style="color:var(--danger)">*</span></label>
+          <input type="time" name="pickup_time" class="form-control" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Payment Method <span style="color:var(--danger)">*</span></label>
+          <select name="payment_method" class="form-control" required>
+            <option value="Cash">Cash</option>
+            <option value="Online Payment">Online Payment</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Delivery Method</label>
+          <select name="delivery_method" class="form-control">
+            <option value="pickup">Pickup</option>
+            <option value="delivery">Delivery</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Assign Rider (optional)</label>
+          <select name="rider_id" class="form-control">
+            <option value="">— No rider —</option>
+            {% for r in riders %}
+            <option value="{{ r.id }}">{{ r.name }} {% if r.phone %}— {{ r.phone }}{% endif %}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notes</label>
+          <input type="text" name="notes" class="form-control" placeholder="Order notes, special instructions...">
+        </div>
+      </div>
+
+      <div class="section-title">Order Items</div>
+      <div class="table-wrap">
+        <table id="itemsTable">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="item-row">
+              <td>
+                <select name="item_id" class="form-control">
+                  <option value="">— Select item —</option>
+                  {% for item in items %}
+                  <option value="{{ item.id }}">{{ item.name }} ({{ item.unit }})</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td><input type="number" name="quantity" class="form-control" value="1" min="1"></td>
+              <td><button type="button" class="btn btn-outline btn-xs remove-row">Remove</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <button type="button" id="addItemBtn" class="btn btn-ghost btn-sm">＋ Add Another Item</button>
+
+      <div class="flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">✅ Save Order</button>
+        <a href="{{ url_for('orders') }}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const addItemBtn = document.getElementById('addItemBtn');
+    const itemsTable = document.getElementById('itemsTable').querySelector('tbody');
+    addItemBtn.addEventListener('click', () => {
+      const row = document.createElement('tr');
+      row.className = 'item-row';
+      row.innerHTML = `
+        <td>
+          <select name="item_id" class="form-control">
+            <option value="">— Select item —</option>
+            {% for item in items %}
+            <option value="{{ item.id }}">{{ item.name }} ({{ item.unit }})</option>
+            {% endfor %}
+          </select>
+        </td>
+        <td><input type="number" name="quantity" class="form-control" value="1" min="1"></td>
+        <td><button type="button" class="btn btn-outline btn-xs remove-row">Remove</button></td>
+      `;
+      itemsTable.appendChild(row);
+    });
+    itemsTable.addEventListener('click', e => {
+      if (e.target.matches('.remove-row')) {
+        const row = e.target.closest('tr');
+        if (row) row.remove();
+      }
+    });
+  });
+</script>
+
+{% endblock %}

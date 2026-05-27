@@ -1,0 +1,154 @@
+{% extends "customer_base.html" %}
+{% block title %}Customer Order{% endblock %}
+{% block page_title %}Place Your Order{% endblock %}
+{% block topbar_actions %}{% endblock %}
+{% block content %}
+
+<div class="quick-guide">
+  <div class="quick-guide-title">🛒 Customer Order</div>
+  <ul>
+    <li>Fill out your details, select items, then choose pickup schedule and payment method.</li>
+    <li>Review the total before submitting.</li>
+    <li>Your order will appear in the admin system automatically.</li>
+  </ul>
+</div>
+
+<div class="card" style="max-width:950px;">
+  <div class="card-header">
+    <div class="card-title">Order Form</div>
+  </div>
+  <div class="card-body">
+    {% if error %}<div class="alert alert-error">⚠️ {{ error }}</div>{% endif %}
+    <form method="POST" id="customerOrderForm">
+      {% if customer %}
+      <div class="alert alert-success">Logged in as <strong>{{ customer.name }}</strong> ({{ customer.email }}) — <a href="{{ url_for('customer_logout') }}">Logout</a></div>
+      <input type="hidden" name="name" value="{{ customer.name }}">
+      <input type="hidden" name="email" value="{{ customer.email }}">
+      <input type="hidden" name="phone" value="{{ customer.phone or '' }}">
+      <input type="hidden" name="address" value="{{ customer.address or '' }}">
+      {% else %}
+      <div class="alert alert-info">Please <a href="{{ url_for('customer_login', next=url_for('customer_order')) }}">log in</a> or <a href="{{ url_for('customer_signup') }}">create an account</a> before checking out.</div>
+      {% endif %}
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Pickup Date <span style="color:var(--danger)">*</span></label>
+          <input type="date" name="pickup_date" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Pickup Time <span style="color:var(--danger)">*</span></label>
+          <input type="time" name="pickup_time" class="form-control" required>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Delivery Method</label>
+          <select id="deliveryMethodSelect" name="delivery_method" class="form-control">
+            <option value="pickup">Pickup</option>
+            <option value="delivery">Delivery</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address (if Delivery)</label>
+          <input type="text" name="address" class="form-control" placeholder="Delivery address">
+        </div>
+      </div>
+
+      <div class="form-group" id="riderGroup" style="display:none">
+        <label class="form-label">Assign Rider</label>
+        <select name="rider_id" class="form-control">
+          <option value="">— Select rider for delivery —</option>
+          {% for rider in riders %}
+          <option value="{{ rider.id }}">{{ rider.name }}{% if rider.phone %} ({{ rider.phone }}){% endif %}</option>
+          {% endfor %}
+        </select>
+        {% if not riders %}
+        <div class="form-hint">No active riders available right now.</div>
+        {% endif %}
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <select name="payment_method" class="form-control">
+          <option value="Cash">Cash</option>
+          <option value="Online Payment">Online Payment</option>
+        </select>
+      </div>
+
+      <div class="section-title">Items</div>
+      <div class="table-wrap">
+        <table id="customerItemsTable">
+          <thead>
+            <tr>
+              <th>Item</th>
+              <th>Qty</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="item-row">
+              <td>
+                <select name="item_id" class="form-control">
+                  <option value="">— Select item —</option>
+                  {% for product in items %}
+                  <option value="{{ product.id }}">{{ product.name }} {% if product.subtype %}({{ product.subtype }}){% endif %} - ₱{{ "%.2f"|format(product.price) }}</option>
+                  {% endfor %}
+                </select>
+              </td>
+              <td><input type="number" name="quantity" class="form-control" value="1" min="1"></td>
+              <td><button type="button" class="btn btn-outline btn-xs remove-row">Remove</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <button type="button" id="customerAddItemBtn" class="btn btn-ghost btn-sm">＋ Add Item</button>
+
+      <div class="flex gap-2 mt-4">
+        <button type="submit" class="btn btn-primary">Submit Order</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const addItemBtn = document.getElementById('customerAddItemBtn');
+    const itemsTable = document.getElementById('customerItemsTable').querySelector('tbody');
+    addItemBtn.addEventListener('click', () => {
+      const row = document.createElement('tr');
+      row.className = 'item-row';
+      row.innerHTML = `
+        <td>
+          <select name="item_id" class="form-control">
+            <option value="">— Select item —</option>
+            {% for product in items %}
+            <option value="{{ product.id }}">{{ product.name }} {% if product.subtype %}({{ product.subtype }}){% endif %} - ₱{{ "%.2f"|format(product.price) }}</option>
+            {% endfor %}
+          </select>
+        </td>
+        <td><input type="number" name="quantity" class="form-control" value="1" min="1"></td>
+        <td><button type="button" class="btn btn-outline btn-xs remove-row">Remove</button></td>
+      `;
+      itemsTable.appendChild(row);
+    });
+    itemsTable.addEventListener('click', e => {
+      if (e.target.matches('.remove-row')) {
+        const row = e.target.closest('tr');
+        if (row) row.remove();
+      }
+    });
+
+    const deliverySelect = document.getElementById('deliveryMethodSelect');
+    const riderGroup = document.getElementById('riderGroup');
+    function updateRiderVisibility() {
+      riderGroup.style.display = deliverySelect.value === 'delivery' ? 'block' : 'none';
+    }
+    if (deliverySelect && riderGroup) {
+      deliverySelect.addEventListener('change', updateRiderVisibility);
+      updateRiderVisibility();
+    }
+  });
+</script>
+
+{% endblock %}

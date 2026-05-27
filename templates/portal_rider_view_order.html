@@ -1,0 +1,88 @@
+{% extends "customer_base.html" %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+{% block page_title %}Order #{{ order.id }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h2>Order #{{ order.id }}</h2>
+    <p>Delivery order for {{ order.customer_name }}</p>
+  </div>
+  <a href="{{ url_for('portal_rider_dashboard', token=token) }}" class="btn btn-ghost btn-sm">← Back to Portal</a>
+</div>
+
+<div class="card mb-4">
+  <div class="card-body">
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Customer</label>
+        <div>{{ order.customer_name }}</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone</label>
+        <div>{{ order.customer_phone or '—' }}</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <div>{{ order.customer_email or '—' }}</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Pickup</label>
+        <div>{{ order.pickup_date }} {{ order.pickup_time }}</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Address</label>
+        <div>{{ order.customer_address or '—' }}</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Status</label>
+        <div>{{ order.status }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header"><div class="card-title">Order Items</div></div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Item</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>{{ item.item_name }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>₱{{ "%.2f"|format(item.unit_price) }}</td>
+          <td>₱{{ "%.2f"|format(item.subtotal) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="card-footer">
+    <div class="flex justify-between">
+      <div></div>
+      <div class="price-cell">Total: ₱{{ "%.2f"|format(order.total_amount) }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="flex gap-2">
+  {% if order.status == 'Pending' %}
+  <form method="POST" action="{{ url_for('portal_rider_order_action', order_id=order.id) }}">
+    <input type="hidden" name="token" value="{{ token }}">
+    <input type="hidden" name="action" value="accept">
+    <button type="submit" class="btn btn-primary">Accept Delivery</button>
+  </form>
+  {% elif order.status == 'Out for Delivery' %}
+  <form method="POST" action="{{ url_for('portal_rider_order_action', order_id=order.id) }}">
+    <input type="hidden" name="token" value="{{ token }}">
+    <input type="hidden" name="action" value="deliver">
+    <button type="submit" class="btn btn-success">Mark Delivered</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

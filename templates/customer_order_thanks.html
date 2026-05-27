@@ -1,0 +1,27 @@
+{% extends "customer_base.html" %}
+{% block title %}Order Submitted{% endblock %}
+{% block page_title %}Order Received{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('customer_login', next=url_for('customer_order')) }}" class="btn btn-primary btn-sm">Place Another Order</a>
+{% endblock %}
+{% block content %}
+
+<div class="card" style="max-width:720px; margin:auto;">
+  <div class="card-body">
+    <div class="empty-state" style="background:var(--surface);border:none;">
+      <div class="empty-icon">🎉</div>
+      <h3>Thank you, {{ customer_name }}!</h3>
+      <p>Your order is now in our system. Please come on <strong>{{ pickup_date }}</strong> at <strong>{{ pickup_time }}</strong>.</p>
+      <p class="text-faint">You can view or cancel your order using the secure link below (we also emailed it to you):</p>
+      <a href="{{ url_for('portal_view_order', order_id=order_id, token=order_token) }}" class="btn btn-outline">View / Manage Order</a>
+      <form method="post" action="{{ url_for('cancel_order', order_id=order_id) }}" style="display:inline; margin-left:0.5rem;" onsubmit="return confirm('Cancel this order?');">
+        <input type="hidden" name="cancel_reason" value="Cancelled by customer">
+        <input type="hidden" name="token" value="{{ order_token }}">
+        <button type="submit" class="btn btn-warning">❌ Cancel Order</button>
+      </form>
+      <a href="{{ url_for('customer_login', next=url_for('customer_order')) }}" class="btn btn-primary">Place Another Order</a>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block title %}Order #{{ order.id }}{% endblock %}
+{% block page_title %}Order #{{ order.id }}{% endblock %}
+{% block topbar_actions %}
+<a href="{{ url_for('orders') }}" class="btn btn-ghost btn-sm">← Back to Orders</a>
+{% endblock %}
+{% block content %}
+
+<div class="quick-guide">
+  <div class="quick-guide-title">💡 Quick Guide — Order Details</div>
+  <ul>
+    <li>Check order summary, pickup schedule, and payment details.</li>
+    <li>Edit to change the schedule, payment, or order items.</li>
+    <li>Delete if the order was cancelled or entered incorrectly.</li>
+  </ul>
+</div>
+
+<div class="page-header">
+  <div>
+    <h2>Order #{{ order.id }}</h2>
+    <p class="text-muted">{{ order.customer_name }} — {{ order.payment_method }}</p>
+  </div>
+  <div class="page-actions">
+    <a href="{{ url_for('edit_order', order_id=order.id) }}" class="btn btn-primary">✏️ Edit Order</a>
+    {% if order.status != 'Cancelled' and session.get('user_id') %}
+      {% if order.delivery_method == 'pickup' and order.status != 'Picked Up' %}
+      <form method="post" action="{{ url_for('update_order_status', order_id=order.id) }}" style="display:inline" onsubmit="return confirm('Mark this order as picked up?');">
+        <input type="hidden" name="action" value="picked_up">
+        <button type="submit" class="btn btn-success">✅ Mark Picked Up</button>
+      </form>
+      {% elif order.delivery_method == 'delivery' and order.status != 'Delivered' %}
+      <form method="post" action="{{ url_for('update_order_status', order_id=order.id) }}" style="display:inline" onsubmit="return confirm('Mark this order as delivered?');">
+        <input type="hidden" name="action" value="delivered">
+        <button type="submit" class="btn btn-success">✅ Mark Delivered</button>
+      </form>
+      {% endif %}
+    {% endif %}
+    {% if order.status != 'Cancelled' %}
+    <form method="post" action="{{ url_for('cancel_order', order_id=order.id) }}" style="display:inline" onsubmit="return confirm('Cancel this order?');">
+      <input type="hidden" name="cancel_reason" value="Cancelled by customer">
+      {% if request.args.get('token') %}
+      <input type="hidden" name="token" value="{{ request.args.get('token') }}">
+      {% endif %}
+      <button type="submit" class="btn btn-warning">❌ Cancel Order</button>
+    </form>
+    {% else %}
+    <span class="badge badge-yellow">Cancelled</span>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card" style="max-width:900px">
+  <div class="card-header">
+    <div class="card-title">Order Summary</div>
+  </div>
+  <div class="card-body">
+    <div class="detail-grid">
+      <div>
+        <div class="detail-label">Customer</div>
+        <div>{{ order.customer_name }}</div>
+      </div>
+      <div>
+        <div class="detail-label">Email</div>
+        <div>{{ order.customer_email }}</div>
+      </div>
+      <div>
+        <div class="detail-label">Phone</div>
+        <div>{{ order.customer_phone or '—' }}</div>
+      </div>
+      <div class="full-width">
+        <div class="detail-label">Address</div>
+        <div>{{ order.customer_address or '—' }}</div>
+      </div>
+      <div>
+        <div class="detail-label">Pickup</div>
+        <div>{{ order.pickup_date }} {{ order.pickup_time }}</div>
+      </div>
+      <div>
+        <div class="detail-label">Payment</div>
+        <div>{{ order.payment_method }}</div>
+      </div>
+      <div>
+        <div class="detail-label">Order Source</div>
+        <div>{{ order.source or 'Admin' }}</div>
+      </div>
+      <div>
+        <div class="detail-label">Type</div>
+        <div>{{ order.delivery_method|capitalize }}</div>
+      </div>
+      <div>
+        <div class="detail-label">Rider</div>
+        <div>{% if order.rider_id %}{{ (get_rider_name(order.rider_id) or '—') }}{% else %}—{% endif %}</div>
+      </div>
+      <div>
+        <div class="detail-label">Status</div>
+        <div>{{ order.status }}</div>
+      </div>
+      <div>
+        <div class="detail-label">Total</div>
+        <div class="price-cell">₱{{ "%.2f"|format(order.total_amount) }}</div>
+      </div>
+      <div class="full-width">
+        <div class="detail-label">Notes</div>
+        <div>{{ order.notes or '—' }}</div>
+      </div>
+    </div>
+
+    <div class="mt-4">
+      <h3 class="mb-3">Items</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Item</th><th>Qty</th><th>Price</th><th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+            <tr>
+              <td>{{ item.item_name }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>₱{{ "%.2f"|format(item.unit_price) }}</td>
+              <td>₱{{ "%.2f"|format(item.subtotal) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

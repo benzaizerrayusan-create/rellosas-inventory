@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Edit Category{% endblock %}
+{% block page_title %}Edit Category{% endblock %}
+{% block content %}
+
+<div class="card" style="max-width:600px">
+  <div class="card-header"><div class="card-title">Edit Category</div></div>
+  <div class="card-body">
+    {% if error %}<div class="alert alert-error">⚠️ {{ error }}</div>{% endif %}
+    <form method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label class="form-label">Category Name</label>
+        <input type="text" class="form-control" value="{{ cat.name }}" disabled>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Current Image</label>
+        <div style="margin-bottom:8px">
+          {% if cat.icon and is_image_filename(cat.icon) %}
+            <img src="{{ url_for('static', filename='images/categories/' ~ cat.icon) }}" style="width:96px;height:96px;object-fit:cover;border-radius:6px">
+          {% else %}
+            <div style="font-size:48px">{{ cat.icon }}</div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Upload New Image</label>
+        <input type="file" name="image" accept="image/*" class="form-control">
+      </div>
+      <div class="flex gap-2 mt-4">
+        <button class="btn btn-primary">Save</button>
+        <a href="{{ url_for('dashboard') }}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
