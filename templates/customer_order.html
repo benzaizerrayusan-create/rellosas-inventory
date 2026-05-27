@@ -69,11 +69,20 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label">Payment Method</label>
-        <select name="payment_method" class="form-control">
-          <option value="Cash">Cash</option>
-          <option value="Online Payment">Online Payment</option>
+        <label class="form-label">Payment Method <span style="color:var(--danger)">*</span></label>
+        <select id="paymentMethodSelect" name="payment_method" class="form-control" required>
+          <option value="">— Select payment method —</option>
+          <option value="Cash">Cash on Pickup/Delivery</option>
+          <option value="GCash">GCash</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="Debit Card">Debit Card</option>
+          <option value="Credit Card">Credit Card</option>
         </select>
+      </div>
+
+      <div id="paymentDetailsBox" style="display:none; margin-top:15px; padding:15px; background:#f0f7ff; border-left:4px solid #007bff; border-radius:4px;">
+        <div class="form-label" style="font-weight:600; margin-bottom:10px;">Payment Instructions</div>
+        <div id="paymentInstructions"></div>
       </div>
 
       <div class="section-title">Items</div>
@@ -148,6 +157,72 @@
       deliverySelect.addEventListener('change', updateRiderVisibility);
       updateRiderVisibility();
     }
+
+    // Payment method instructions
+    const paymentMethodSelect = document.getElementById('paymentMethodSelect');
+    const paymentDetailsBox = document.getElementById('paymentDetailsBox');
+    const paymentInstructions = document.getElementById('paymentInstructions');
+
+    const paymentMethods = {
+      'Cash': `
+        <p><strong>✓ Cash on Pickup/Delivery</strong></p>
+        <ul style="margin-left:20px; margin-top:8px;">
+          <li>Pay cash when you pick up your order</li>
+          <li>Exact change recommended</li>
+          <li>No transaction fees</li>
+        </ul>
+      `,
+      'GCash': `
+        <p><strong>💳 GCash Payment</strong></p>
+        <ul style="margin-left:20px; margin-top:8px;">
+          <li>GCash Account Number: <strong>[PENDING - Add your GCash number here]</strong></li>
+          <li>Name: <strong>Rellosas Store</strong></li>
+          <li>Please send the amount to the GCash account after placing your order</li>
+          <li>Wait for confirmation before pickup</li>
+          <li>Reference your Order ID in the transaction</li>
+        </ul>
+      `,
+      'Bank Transfer': `
+        <p><strong>🏦 Bank Transfer</strong></p>
+        <ul style="margin-left:20px; margin-top:8px;">
+          <li>Bank: <strong>[PENDING - Add your bank name here]</strong></li>
+          <li>Account Number: <strong>[PENDING - Add your account number here]</strong></li>
+          <li>Account Name: <strong>Rellosas Store</strong></li>
+          <li>Transfer the full amount after placing your order</li>
+          <li>Include your Order ID as reference</li>
+          <li>Send proof of transfer via message/email</li>
+        </ul>
+      `,
+      'Debit Card': `
+        <p><strong>💳 Debit Card Payment</strong></p>
+        <ul style="margin-left:20px; margin-top:8px;">
+          <li>Payment link will be sent after order confirmation</li>
+          <li>Secure payment gateway (Stripe/PayMongo)</li>
+          <li>Your card information is encrypted and safe</li>
+          <li>Transaction will be processed immediately</li>
+        </ul>
+      `,
+      'Credit Card': `
+        <p><strong>💳 Credit Card Payment</strong></p>
+        <ul style="margin-left:20px; margin-top:8px;">
+          <li>Payment link will be sent after order confirmation</li>
+          <li>Secure payment gateway (Stripe/PayMongo)</li>
+          <li>Your card information is encrypted and safe</li>
+          <li>Transaction will be processed immediately</li>
+          <li>Points/rewards may apply to your card</li>
+        </ul>
+      `
+    };
+
+    paymentMethodSelect.addEventListener('change', (e) => {
+      const selectedMethod = e.target.value;
+      if (selectedMethod && paymentMethods[selectedMethod]) {
+        paymentInstructions.innerHTML = paymentMethods[selectedMethod];
+        paymentDetailsBox.style.display = 'block';
+      } else {
+        paymentDetailsBox.style.display = 'none';
+      }
+    });
   });
 </script>
 

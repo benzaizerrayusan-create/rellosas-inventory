@@ -66,8 +66,11 @@
         <div class="form-group">
           <label class="form-label">Payment Method <span style="color:var(--danger)">*</span></label>
           <select name="payment_method" class="form-control" required>
-            <option value="Cash" {% if order.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
-            <option value="Online Payment" {% if order.payment_method == 'Online Payment' %}selected{% endif %}>Online Payment</option>
+            <option value="Cash" {% if order.payment_method == 'Cash' %}selected{% endif %}>Cash on Pickup/Delivery</option>
+            <option value="GCash" {% if order.payment_method == 'GCash' %}selected{% endif %}>GCash</option>
+            <option value="Bank Transfer" {% if order.payment_method == 'Bank Transfer' %}selected{% endif %}>Bank Transfer</option>
+            <option value="Debit Card" {% if order.payment_method == 'Debit Card' %}selected{% endif %}>Debit Card</option>
+            <option value="Credit Card" {% if order.payment_method == 'Credit Card' %}selected{% endif %}>Credit Card</option>
           </select>
         </div>
         <div class="form-group">
