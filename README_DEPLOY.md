@@ -40,4 +40,8 @@ Notes
 - After deploy, customer portal links will be public at `https://<your-host>/portal/order/<id>?token=<token>` and rider portal at `https://<your-host>/rider/portal/<rider_token>`.
 - Rotate tokens or add an admin UI if tokens are compromised.
 
+Render GitHub Actions
+- A GitHub Actions workflow is included at `.github/workflows/render-deploy.yml`.
+- Add `RENDER_API_KEY` and `RENDER_SERVICE_ID` as GitHub repository secrets to trigger Render deploys on push to `master`.
+
 If you want, I can prepare a `render.yaml` for automatic Render setup or a step-by-step Railway guide specific to your account.
