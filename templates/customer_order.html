@@ -30,42 +30,45 @@
       <div class="alert alert-info">Please <a href="{{ url_for('customer_login', next=url_for('customer_order')) }}">log in</a> or <a href="{{ url_for('customer_signup') }}">create an account</a> before checking out.</div>
       {% endif %}
 
-      <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Delivery Method <span style="color:var(--danger)">*</span></label>
+        <select id="deliveryMethodSelect" name="delivery_method" class="form-control" required>
+          <option value="">— Select delivery method —</option>
+          <option value="pickup">Pickup</option>
+          <option value="delivery">Delivery</option>
+        </select>
+      </div>
+
+      <!-- PICKUP SECTION -->
+      <div id="pickupSection" style="display:none;">
         <div class="form-group">
           <label class="form-label">Pickup Date <span style="color:var(--danger)">*</span></label>
-          <input type="date" name="pickup_date" class="form-control" required>
+          <input type="date" id="pickupDateInput" name="pickup_date" class="form-control">
         </div>
         <div class="form-group">
           <label class="form-label">Pickup Time <span style="color:var(--danger)">*</span></label>
-          <input type="time" name="pickup_time" class="form-control" required>
+          <input type="time" id="pickupTimeInput" name="pickup_time" class="form-control">
         </div>
       </div>
 
-      <div class="form-row">
+      <!-- DELIVERY SECTION -->
+      <div id="deliverySection" style="display:none;">
         <div class="form-group">
-          <label class="form-label">Delivery Method</label>
-          <select id="deliveryMethodSelect" name="delivery_method" class="form-control">
-            <option value="pickup">Pickup</option>
-            <option value="delivery">Delivery</option>
+          <label class="form-label">Delivery Address <span style="color:var(--danger)">*</span></label>
+          <input type="text" id="deliveryAddressInput" name="address" class="form-control" placeholder="Enter your delivery address">
+        </div>
+        <div class="form-group" id="riderGroup">
+          <label class="form-label">Assign Rider</label>
+          <select name="rider_id" class="form-control">
+            <option value="">— Select rider for delivery —</option>
+            {% for rider in riders %}
+            <option value="{{ rider.id }}">{{ rider.name }}{% if rider.phone %} ({{ rider.phone }}){% endif %}</option>
+            {% endfor %}
           </select>
+          {% if not riders %}
+          <div class="form-hint">No active riders available right now.</div>
+          {% endif %}
         </div>
-        <div class="form-group">
-          <label class="form-label">Address (if Delivery)</label>
-          <input type="text" name="address" class="form-control" placeholder="Delivery address">
-        </div>
-      </div>
-
-      <div class="form-group" id="riderGroup" style="display:none">
-        <label class="form-label">Assign Rider</label>
-        <select name="rider_id" class="form-control">
-          <option value="">— Select rider for delivery —</option>
-          {% for rider in riders %}
-          <option value="{{ rider.id }}">{{ rider.name }}{% if rider.phone %} ({{ rider.phone }}){% endif %}</option>
-          {% endfor %}
-        </select>
-        {% if not riders %}
-        <div class="form-hint">No active riders available right now.</div>
-        {% endif %}
       </div>
 
       <div class="form-group">
@@ -148,14 +151,41 @@
       }
     });
 
-    const deliverySelect = document.getElementById('deliveryMethodSelect');
-    const riderGroup = document.getElementById('riderGroup');
-    function updateRiderVisibility() {
-      riderGroup.style.display = deliverySelect.value === 'delivery' ? 'block' : 'none';
+    // DELIVERY METHOD TOGGLE
+    const deliveryMethodSelect = document.getElementById('deliveryMethodSelect');
+    const pickupSection = document.getElementById('pickupSection');
+    const deliverySection = document.getElementById('deliverySection');
+    const pickupDateInput = document.getElementById('pickupDateInput');
+    const pickupTimeInput = document.getElementById('pickupTimeInput');
+    const deliveryAddressInput = document.getElementById('deliveryAddressInput');
+
+    function updateDeliveryDisplay() {
+      const selectedMethod = deliveryMethodSelect.value;
+      
+      if (selectedMethod === 'pickup') {
+        pickupSection.style.display = 'block';
+        deliverySection.style.display = 'none';
+        pickupDateInput.required = true;
+        pickupTimeInput.required = true;
+        deliveryAddressInput.required = false;
+      } else if (selectedMethod === 'delivery') {
+        pickupSection.style.display = 'none';
+        deliverySection.style.display = 'block';
+        pickupDateInput.required = false;
+        pickupTimeInput.required = false;
+        deliveryAddressInput.required = true;
+      } else {
+        pickupSection.style.display = 'none';
+        deliverySection.style.display = 'none';
+        pickupDateInput.required = false;
+        pickupTimeInput.required = false;
+        deliveryAddressInput.required = false;
+      }
     }
-    if (deliverySelect && riderGroup) {
-      deliverySelect.addEventListener('change', updateRiderVisibility);
-      updateRiderVisibility();
+
+    if (deliveryMethodSelect) {
+      deliveryMethodSelect.addEventListener('change', updateDeliveryDisplay);
+      updateDeliveryDisplay();
     }
 
     // Payment method instructions
@@ -214,15 +244,17 @@
       `
     };
 
-    paymentMethodSelect.addEventListener('change', (e) => {
-      const selectedMethod = e.target.value;
-      if (selectedMethod && paymentMethods[selectedMethod]) {
-        paymentInstructions.innerHTML = paymentMethods[selectedMethod];
-        paymentDetailsBox.style.display = 'block';
-      } else {
-        paymentDetailsBox.style.display = 'none';
-      }
-    });
+    if (paymentMethodSelect) {
+      paymentMethodSelect.addEventListener('change', (e) => {
+        const selectedMethod = e.target.value;
+        if (selectedMethod && paymentMethods[selectedMethod]) {
+          paymentInstructions.innerHTML = paymentMethods[selectedMethod];
+          paymentDetailsBox.style.display = 'block';
+        } else {
+          paymentDetailsBox.style.display = 'none';
+        }
+      });
+    }
   });
 </script>
 

@@ -1673,8 +1673,21 @@ def add_order():
             subtotal = unit_price * quantity
             total_amount += subtotal
             order_items.append((item_id, quantity, unit_price, subtotal))
-        if not customer_id or not pickup_date or not pickup_time or not order_items:
-            error = "Customer, pickup schedule, payment method, and at least one item are required."
+        # Validate
+        validation_error = None
+        if not customer_id:
+            validation_error = "Please select a customer."
+        elif not payment_method:
+            validation_error = "Please select a payment method."
+        elif not order_items:
+            validation_error = "Please select at least one item."
+        elif delivery_method == 'pickup' and (not pickup_date or not pickup_time):
+            validation_error = "Pickup date and time are required."
+        elif delivery_method == 'delivery' and not rider_id:
+            validation_error = "Please assign a rider for delivery."
+        
+        if validation_error:
+            error = validation_error
         else:
             try:
                 with get_db() as db:
@@ -1753,8 +1766,21 @@ def customer_order():
             subtotal = unit_price * quantity
             total_amount += subtotal
             order_items.append((item_id, quantity, unit_price, subtotal))
-        if not name or not email or not pickup_date or not pickup_time or not order_items:
-            error = "Please complete your name, email, pickup schedule, and at least one item."
+        # Validate based on delivery method
+        validation_error = None
+        if not name or not email:
+            validation_error = "Name and email are required."
+        elif not payment_method:
+            validation_error = "Please select a payment method."
+        elif not order_items:
+            validation_error = "Please select at least one item."
+        elif delivery_method == 'pickup' and (not pickup_date or not pickup_time):
+            validation_error = "Pickup date and time are required for pickup."
+        elif delivery_method == 'delivery' and not address:
+            validation_error = "Delivery address is required for delivery."
+        
+        if validation_error:
+            error = validation_error
         else:
             try:
                 with get_db() as db:
@@ -1841,8 +1867,19 @@ def edit_order(order_id):
             subtotal = unit_price * quantity
             total_amount += subtotal
             items_data.append((item_id, quantity, unit_price, subtotal))
-        if not customer_id or not pickup_date or not pickup_time or not items_data:
-            error = "Customer, pickup schedule, payment method, and at least one item are required."
+        # Validate
+        validation_error = None
+        if not customer_id:
+            validation_error = "Please select a customer."
+        elif not payment_method:
+            validation_error = "Please select a payment method."
+        elif not items_data:
+            validation_error = "Please select at least one item."
+        elif request.form.get('delivery_method','pickup') == 'pickup' and (not pickup_date or not pickup_time):
+            validation_error = "Pickup date and time are required."
+        
+        if validation_error:
+            error = validation_error
         else:
             try:
                 with get_db() as db:
